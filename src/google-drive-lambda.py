@@ -5,10 +5,12 @@ import boto3
 import os
 import sys
 import json
+import io
 
 from apiclient import discovery
 from apiclient import errors
 from apiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload
 
 def get_service_account_credentials(credentials_parameter):
     """
@@ -108,7 +110,19 @@ def upload_file(service, file_name_with_path, file_name, description, folder_id,
     
     return file
 
-    
+def download_file_df(file_id, mimeType, filename,service):
+    if "google-apps" in mimeType:
+        # skip google files
+        return
+    request = service.files().get_media(fileId=file_id)
+    fh = io.FileIO(filename, 'wb')
+    print(fh)
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print ("Download %d%%." % int(status.progress() * 100))
+        
 def main_handler(event, context):
     """
     Pull the specified files from S3 and push to a Shared Folder in Google Drive.
@@ -128,8 +142,26 @@ def main_handler(event, context):
     service = discovery.build('drive', 'v3', credentials=credentials, cache_discovery=False)
 
     s3_client = boto3.client('s3')
-    
+    """
     for file_name in event['fileList']:
         download_path = '/tmp/{}'.format(file_name)
         s3_client.download_file(bucket, file_name, download_path)
         upload_file(service, download_path, file_name, file_name, folder_id, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+    """
+    #download from gdrive to S3 
+    os.chdir('/tmp/')
+    request = service.files().get_media(fileId='1DBFUXmgDp2wFKEGSolN7QtBWtXgNJYEe')
+    fh = io.FileIO('CopyofBook1.xlsx', 'wb')
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print(fh)
+        print ("Download %d%%." % int(status.progress() * 100))
+        
+    a = os.listdir('/tmp/')
+    for x in a:
+        print('file in temp directorys is '+x)
+        
+    s3_client.upload_file("/tmp/CopyofBook1.xlsx", "gdil-s3", "CopyofBook1.xlsx")

@@ -8,20 +8,49 @@ Parameters:
     Type: String
   
 Resources:
-  GoogleDriveIntegrator:
+  GoogleDriveIntegrators3todrive:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: google-drive-lambda
+      FunctionName: s3-to-drive
       Description: Function for grabbing Excel files from S3 and pushing to a shared Google drive
       MemorySize: 256
       Timeout: 60
-      Handler: google-drive-lambda.main_handler
+      Handler: s3-to-drive.main_handler
       Runtime: python3.7
       CodeUri:
         Bucket:
           Fn::ImportValue:
             Fn::Sub: ${ParentStackName}-LambdaAndReportBucket
-        Key: google-drive-lambda.zip
+        Key: S3-to-Google-Drive.zip
+      Layers: 
+      - !Ref PythonLayer
+      Role: !GetAtt GoogleDriveLambdaIAMRole.Arn      
+      Environment:
+        Variables:
+          REPORTS_BUCKET:
+            Fn::ImportValue:
+              Fn::Sub: ${ParentStackName}-LambdaAndReportBucket
+          GOOGLE_CREDENTIALS_PARAMETER:
+            Fn::ImportValue:
+              Fn::Sub: ${ParentStackName}-GoogleServiceAccountCredentials
+          GOOGLE_SHARED_FOLDER_ID_PARAMETER:
+            Fn::ImportValue:
+              Fn::Sub: ${ParentStackName}-GoogleDriveFolderId
+
+  GoogleDriveIntegratordrivetos3:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: drive-to-s3
+      Description: Function for grabbing Excel files from drive and pushing to the s3 bucket
+      MemorySize: 256
+      Timeout: 60
+      Handler: drive-to-s3.main_handler
+      Runtime: python3.7
+      CodeUri:
+        Bucket:
+          Fn::ImportValue:
+            Fn::Sub: ${ParentStackName}-LambdaAndReportBucket
+        Key: google-drive-to-S3.zip
       Layers: 
       - !Ref PythonLayer
       Role: !GetAtt GoogleDriveLambdaIAMRole.Arn      
@@ -41,7 +70,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: google-drive-python-layer
-      Description: Layer with Python dependencies required by google-drive-lambda
+      Description: Layer with Python dependencies required by both the functions
       ContentUri:
         Bucket:
           Fn::ImportValue:
@@ -68,6 +97,8 @@ Resources:
             Action:
             - s3:GetObject
             - s3:GetObjectAcl
+            - s3:PutObject
+            - s3:PutObjectAcl
             Resource:
               Fn::Join:
               - ''

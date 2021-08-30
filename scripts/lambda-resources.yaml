@@ -11,11 +11,11 @@ Resources:
   GoogleDriveIntegrators3todrive:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: s3-to-drive
+      FunctionName: S3-to-Google-Drive
       Description: Function for grabbing Excel files from S3 and pushing to a shared Google drive
       MemorySize: 256
       Timeout: 60
-      Handler: s3-to-drive.main_handler
+      Handler: S3-to-Google-Drive.main_handler
       Runtime: python3.7
       CodeUri:
         Bucket:
@@ -40,11 +40,11 @@ Resources:
   GoogleDriveIntegratordrivetos3:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: drive-to-s3
+      FunctionName: google-drive-to-S3
       Description: Function for grabbing Excel files from drive and pushing to the s3 bucket
       MemorySize: 256
       Timeout: 60
-      Handler: drive-to-s3.main_handler
+      Handler: google-drive-to-S3.main_handler
       Runtime: python3.7
       CodeUri:
         Bucket:

@@ -12,8 +12,7 @@ mkdir python
 pip3 install google-api-python-client --target python
 zip -r google-api-python-layer.zip python
 
-aws s3 cp google-api-python-layer.zip s3://your-bucket-name
-
+aws s3 cp google-api-python-layer.zip s3://gdil-bucket/
 
 # zip the Lambda file and push to S3
 #
@@ -22,5 +21,5 @@ rm -f google-drive-lambda.zip
 zip S3-to-Google-Drive.zip S3-to-Google-Drive.py
 zip google-drive-to-S3.zip google-drive-to-S3.py
 
-aws s3 cp S3-to-Google-Drive.zip s3://your-bucket-name
-aws s3 cp google-drive-to-S3.zip s3://your-bucket-name
+aws s3 cp S3-to-Google-Drive.zip s3://gdil-bucket/
+aws s3 cp google-drive-to-S3.zip s3://gdil-bucket/
